@@ -6,13 +6,82 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <EditText
+        android:inputType="number"
+        android:text="0"
+        android:id="@+id/edt_unit1"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/sp_unit1"
+        android:layout_margin="@dimen/dp20"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="?actionBarSize"/>
+
+    <EditText
+        android:inputType="number"
+        android:text="0"
+        android:id="@+id/edt_unit2"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/sp_unit2"
+        android:layout_margin="@dimen/dp20"
+        app:layout_constraintTop_toBottomOf="@id/edt_unit1"
+        android:layout_width="0dp"
+        android:layout_height="?actionBarSize"/>
+
+    <Spinner
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/dp20"
+        android:layout_marginRight="@dimen/dp20"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/sp_unit1"
+        android:layout_width="@dimen/dp100"
+        android:layout_height="?actionBarSize"/>
+
+    <Spinner
+        app:layout_constraintTop_toBottomOf="@id/sp_unit1"
+        android:layout_marginTop="@dimen/dp20"
+        android:layout_marginRight="@dimen/dp20"
+        app:layout_constraintRight_toRightOf="parent"
+        android:id="@+id/sp_unit2"
+        android:layout_width="@dimen/dp100"
+        android:layout_height="?actionBarSize"/>
+
+
+    <LinearLayout
+
+        android:padding="@dimen/dp20"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edt_unit2"
+        android:orientation="horizontal"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <Button
+            android:textSize="40sp"
+            android:text="-"
+            android:id="@+id/btnminus"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:textSize="40sp"
+            android:text="."
+            android:id="@+id/btndot"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:textSize="40sp"
+            android:text="C"
+            android:id="@+id/btndel"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

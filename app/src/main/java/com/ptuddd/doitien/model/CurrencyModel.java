@@ -1,5 +1,7 @@
 package com.ptuddd.doitien.model;
 
+import androidx.annotation.NonNull;
+
 public class CurrencyModel {
     private String name;
     //Rate so với usd
@@ -24,5 +26,11 @@ public class CurrencyModel {
 
     public void setRate(Double rate) {
         this.rate = rate;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return name;
     }
 }
