@@ -142,7 +142,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 if(edt1.getText().toString().equals("")||edt1.getText().toString().equals("-")){
                     edt1.setText("0");
                 }else {
-//                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit1));
+                    exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }
             }
 
@@ -162,7 +162,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 if(edt2.getText().toString().equals("")||edt2.getText().toString().equals("-")){
                     edt2.setText("0");
                 }else {
-//                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2));
+                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
+
                 }
             }
 
