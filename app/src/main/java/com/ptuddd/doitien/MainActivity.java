@@ -1,6 +1,7 @@
 package com.ptuddd.doitien;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
 import android.text.Editable;
@@ -15,16 +16,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ptuddd.doitien.activity.BaseActivity;
 import com.ptuddd.doitien.model.CurrencyModel;
 import com.ptuddd.doitien.model.RssModel;
 import com.ptuddd.doitien.server.RssCurrencyManager;
 import com.ptuddd.doitien.server.RssManager;
 
+import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends BaseActivity implements View.OnClickListener {
     public static String TAG ="nhatnhat";
-
+    private ConstraintLayout parent;
     private Spinner unit1,unit2;
     private EditText edt1,edt2;
     private Button btnminus,btndot,btndel;
@@ -32,45 +35,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayAdapter aa;
     int currentSelectUnit1=0;
     int currentSelectUnit2=0;
-    private Bundle savedInstanceState;
+    private List<CurrencyModel> currencyModels;
 
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {
-        this.savedInstanceState = savedInstanceState;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        showDialogLoading("Vui lòng đợi ứng dụng lấy dữ liệu từ server",false);
         RssCurrencyManager.getInstance().getCurrencysFromRss("https://usd.fxexchangerate.com/rss.xml", new RssCurrencyManager.RssCurrencyManagerListener() {
             @Override
-            public void onGetCurrencyFromRssSuccess(List<CurrencyModel> currencyModels) {
+            public void onGetCurrencyFromRssSuccess(final List<CurrencyModel> currencys) {
+                currencyModels =currencys;
+                currencyModels.add(0,new CurrencyModel("USD",1.0));
+                cancleDialogLoading();
+                parent.setVisibility(View.VISIBLE);
+                aa = new ArrayAdapter(MainActivity.this,android.R.layout.simple_spinner_item, currencyModels);
+                aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                unit1.setAdapter(aa);
+                unit2.setAdapter(aa);
+
+
                 for (CurrencyModel c :
                         currencyModels) {
 
-                    aa = new ArrayAdapter(this,android.R.layout.simple_spinner_item,currencyModels.toArray(String));
-                    aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    Log.d(TAG, c.getName() + " : " + c.getRate());
+
                 }
             }
 
             @Override
             public void onGetCurrencyFromRssFail(String error) {
+                cancleDialogLoading();
+                Toast.makeText(MainActivity.this, "Đã xảy ra lỗi , vui lòng kiểm tra kết nối mạng", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "onGetCurrencyFromRssFail: " + error);
 
             }
         });
 
-        unit1.setAdapter(aa);
-        unit2.setAdapter(aa);
 
+
+    }
+    private void exchangeCurrencies(EditText editTextSetValues,EditText editTextGetValues,CurrencyModel selectedCurrencyGet,CurrencyModel selectedCurrencySet){
+        double currentRateGet =selectedCurrencyGet.getRate();
+        double currentRateSet = selectedCurrencySet.getRate();
+        double newValue=Double.parseDouble(editTextGetValues.getText().toString())/currentRateGet*currentRateSet;
+        editTextSetValues.setText(newValue+"");
+
+    }
+
+    private void initView() {
+        unit1 = findViewById(R.id.sp_unit1);
+        unit2 = findViewById(R.id.sp_unit2);
+        edt1 = findViewById(R.id.edt_unit1);
+        edt2= findViewById(R.id.edt_unit2);
+        parent = findViewById(R.id.cl_parent);
+        btnminus= findViewById(R.id.btnminus);
+        btnminus.setOnClickListener(this);
+        btndot= findViewById(R.id.btndot);
+        btndot.setOnClickListener(this);
+        btndel= findViewById(R.id.btndel);
+        btndel.setOnClickListener(this);
         unit1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentSelectUnit1=position;
                 if(edt1.hasFocus()){
-                    calculatUnit2();
+                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }else {
-                    calculatUnit1();
+                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
                 }
             }
 
@@ -83,10 +116,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentSelectUnit2=position;
-                if(edt2.hasFocus()){
-                    calculatUnit1();
+                if(edt1.hasFocus()){
+                    exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }else {
-                    calculatUnit2();
+                    exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
                 }
             }
 
@@ -106,12 +139,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                if(isNumeric(edt1.getText().toString())||edt1.getText().toString().equals("-")||edt1.getText().toString().equals(".")){
-
-                calculatUnit2();
-//                }else {
-//                    edt1.setText(edt1.getText());
-//                }
+                if(edt1.getText().toString().equals("")||edt1.getText().toString().equals("-")){
+                    edt1.setText("0");
+                }else {
+//                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit1));
+                }
             }
 
             @Override
@@ -130,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(edt2.getText().toString().equals("")||edt2.getText().toString().equals("-")){
                     edt2.setText("0");
                 }else {
-                    calculatUnit1();
+//                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2));
                 }
             }
 
@@ -139,8 +171,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         };
-//        edt1.addTextChangedListener(tw1);
-//        edt2.addTextChangedListener(tw2);
         edt1.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -162,108 +192,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-    }
-
-    private void initView() {
-        unit1 = findViewById(R.id.sp_unit1);
-        unit2 = findViewById(R.id.sp_unit2);
-        edt1 = findViewById(R.id.edt_unit1);
-        edt2= findViewById(R.id.edt_unit2);
-        btnminus= findViewById(R.id.btnminus);
-        btnminus.setOnClickListener(this);
-        btndot= findViewById(R.id.btndot);
-        btndot.setOnClickListener(this);
-        btndel= findViewById(R.id.btndel);
-        btndel.setOnClickListener(this);
-    }
-
-    public static boolean isNumeric(String str) {
-        try {
-            Double.parseDouble(str);
-            return true;
-        } catch(NumberFormatException e){
-            return false;
-        }
-    }
-    private void calculatUnit2() {
-        if(currentSelectUnit1==currentSelectUnit2){
-            edt2.setText(edt1.getText().toString());
-        }else {
-            switch (unit[currentSelectUnit1]){
-                case "C" :{
-                    if(unit[currentSelectUnit2].equals("F"))
-                        edt2.setText(cToF(Double.parseDouble(edt1.getText().toString()))+"");
-                    if(unit[currentSelectUnit2].equals("K"))
-                        edt2.setText(cToK(Double.parseDouble(edt1.getText().toString()))+"");
-                    break;
-                }
-                case "F" :{
-                    if(unit[currentSelectUnit2].equals("C"))
-                        edt2.setText(fToC(Double.parseDouble(edt1.getText().toString()))+"");
-                    if(unit[currentSelectUnit2].equals("K"))
-                        edt2.setText(fToK(Double.parseDouble(edt1.getText().toString()))+"");
-                    break;
-                }
-                case "K" :{
-                    if(unit[currentSelectUnit2].equals("C"))
-                        edt2.setText(kToC(Double.parseDouble(edt1.getText().toString()))+"");
-                    if(unit[currentSelectUnit2].equals("F"))
-                        edt2.setText(kToF(Double.parseDouble(edt1.getText().toString()))+"");
-                    break;
-                }
-            }
-
-        }
-    }
-
-    private void calculatUnit1() {
-        if(currentSelectUnit1==currentSelectUnit2){
-            edt1.setText(edt2.getText().toString());
-
-        }else {
-            switch (unit[currentSelectUnit2]){
-                case "C" :{
-                    if(unit[currentSelectUnit1].equals("F"))
-                        edt1.setText(cToF(Double.parseDouble(edt2.getText().toString()))+"");
-                    if(unit[currentSelectUnit1].equals("K"))
-                        edt1.setText(cToK(Double.parseDouble(edt2.getText().toString()))+"");
-                    break;
-                }
-                case "F" :{
-                    if(unit[currentSelectUnit1].equals("C"))
-                        edt1.setText(fToC(Double.parseDouble(edt2.getText().toString()))+"");
-                    if(unit[currentSelectUnit1].equals("K"))
-                        edt1.setText(fToK(Double.parseDouble(edt2.getText().toString()))+"");
-                    break;
-                }
-                case "K" :{
-                    if(unit[currentSelectUnit1].equals("C"))
-                        edt1.setText(kToC(Double.parseDouble(edt2.getText().toString()))+"");
-                    if(unit[currentSelectUnit1].equals("F"))
-                        edt1.setText(kToF(Double.parseDouble(edt2.getText().toString()))+"");
-                    break;
-                }
-            }
-
-        }
-    }
-    private double cToF(double c){
-        return (9.0/5.0)*c + 32;
-    }
-    private double cToK(double c){
-        return (c + 273.15);
-    }
-    private double fToC(double f){
-        return (f-32)*(0.5556);
-    }
-    private double fToK(double f){
-        return 273.5 + ((f - 32.0) * (5.0/9.0));
-    }
-    private double kToC(double k){
-        return k-273.15;
-    }
-    private double kToF(double k){
-        return ((k-273.15)*1.8)+32;
     }
 
     private void addText(String string){
