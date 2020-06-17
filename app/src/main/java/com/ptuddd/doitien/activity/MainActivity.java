@@ -21,6 +21,8 @@ import com.ptuddd.doitien.server.RssCurrencyManager;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -28,7 +30,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private ConstraintLayout parent;
     private Spinner unit1,unit2;
     private EditText edt1,edt2;
-    private TextView tvcongthuc;
+    private TextView tvcongthuc,tvcongthuc2;
     private Button btndot,btndel,btntry;
     private ArrayAdapter aa;
     private int currentSelectUnit1=0;
@@ -51,13 +53,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onGetCurrencyFromRssSuccess(final List<CurrencyModel> currencys) {
                 currencyModels =currencys;
-                currencyModels.add(0,new CurrencyModel("United States Dollar",1,"USD"));
+//                currencyModels.add(0,new CurrencyModel("United States Dollar",1,"USD"));
                 cancleDialogLoading();
                 parent.setVisibility(View.VISIBLE);
+                if (currencys.size() > 0) {
+                    Collections.sort(currencys, new Comparator<CurrencyModel>() {
+                        @Override
+                        public int compare(CurrencyModel o1, CurrencyModel o2) {
+                            return o1.getSysbol().compareTo(o2.getSysbol());
+                        }
+                    });
+                }
                 aa = new ArrayAdapter(MainActivity.this,android.R.layout.simple_spinner_item, currencyModels);
                 aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 unit1.setAdapter(aa);
+                 //size-15 là vị trí của USD trong mảng
+                unit1.setSelection(aa.getCount()-15);
                 unit2.setAdapter(aa);
+                //     -11 là vị trí của VND trong mảng
+                unit2.setSelection(aa.getCount()-11);
             }
 
             @Override
@@ -76,7 +90,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             double currentRateGet = selectedCurrencyGet.getRate();
             double currentRateSet = selectedCurrencySet.getRate();
             BigDecimal newValue = new BigDecimal(Float.parseFloat(editTextGetValues.getText().toString()) / currentRateGet * currentRateSet, MathContext.DECIMAL64);
-            tvcongthuc.setText(editTextGetValues.getText().toString() + ""+selectedCurrencyGet.getName()+" = "+newValue+" "+selectedCurrencySet.getName());
+            tvcongthuc.setText(editTextGetValues.getText().toString() + "  "+selectedCurrencyGet.getName());
+            tvcongthuc2.setText(newValue+"  "+selectedCurrencySet.getName());
             editTextSetValues.setText(newValue + "");
         }
 
@@ -94,7 +109,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         btndel.setOnClickListener(this);
         btntry=findViewById(R.id.btn_tryagain);
         btntry.setOnClickListener(this);
-        tvcongthuc = findViewById(R.id.tv_congthuc);
+        tvcongthuc = findViewById(R.id.tv_congthuc1);
+        tvcongthuc2 = findViewById(R.id.tv_congthuc2);
         unit1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -139,7 +155,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(edt1.getText().toString().equals("")||edt1.getText().toString().equals("-")){
-                    edt1.setText("0.0");
+                    edt1.setText("0");
                 }else {
                     exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }
@@ -159,7 +175,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(edt2.getText().toString().equals("")||edt2.getText().toString().equals("-")){
-                    edt2.setText("0.0");
+                    edt2.setText("0");
                 }else {
                     exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
 
