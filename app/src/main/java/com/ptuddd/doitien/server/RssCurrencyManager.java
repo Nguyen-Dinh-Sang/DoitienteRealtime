@@ -8,7 +8,6 @@ import com.ptuddd.doitien.model.RssModel;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ptuddd.doitien.MainActivity.TAG;
 
 public class RssCurrencyManager extends RssManager {
 
@@ -26,16 +25,20 @@ public class RssCurrencyManager extends RssManager {
             public void onLoadRssSuccess(List<RssModel> rssModels) {
                 for (RssModel rss:rssModels) {
                     String des = rss.getRssDescription();
+                    String title =rss.getRssTitle();
+
+                    Log.d("nhatnhat", "onLoadRssSuccess: "+des+title);
                     int position =des.indexOf("=");
                     if(position>0) {
+                    String sysbol = title.substring(title.length()-4,title.length()-1);
                     String temp =des.substring(position+1).trim();
                     String[] subs = temp.split(" ");
-                    Double rate = Double.parseDouble(subs[0]);
+                    double rate = Float.parseFloat(subs[0]);
                     String currencyName ="";
                     for (int i = 1; i <subs.length ; i++) {
                         currencyName+=subs[i];
                     }
-                    currencyModels.add(new CurrencyModel(currencyName,rate));
+                    currencyModels.add(new CurrencyModel(currencyName,rate,sysbol));
                     }
                 }
                 rssCurrencyManagerListener.onGetCurrencyFromRssSuccess(currencyModels);

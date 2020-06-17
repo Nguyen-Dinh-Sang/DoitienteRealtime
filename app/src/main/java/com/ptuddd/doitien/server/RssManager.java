@@ -33,6 +33,8 @@ public class RssManager {
             this.rssManagerListener =rssManagerListener;
         }
 
+
+
         @Override
         protected String doInBackground(Void... voids) {
             if (TextUtils.isEmpty(urlLink))
@@ -45,6 +47,7 @@ public class RssManager {
                 URL url = new URL(urlLink);
                 InputStream inputStream = url.openConnection().getInputStream();
                 rssModelList = parseXml(inputStream);
+                Log.d("nhatnhat", "doInBackground: "+rssModelList.size());
                 return "";
             } catch (IOException | XmlPullParserException e) {
                 return e.toString();
@@ -66,7 +69,6 @@ public class RssManager {
         String title = null;
         String link = null;
         String description = null;
-        boolean isItem = false;
         List<RssModel> items = new ArrayList<>();
 
         try {
@@ -76,26 +78,10 @@ public class RssManager {
 
             xmlPullParser.nextTag();
             while (xmlPullParser.next() != XmlPullParser.END_DOCUMENT) {
-                int eventType = xmlPullParser.getEventType();
-
                 String name = xmlPullParser.getName();
+
                 if(name == null)
                     continue;
-
-                if(eventType == XmlPullParser.END_TAG) {
-                    if(name.equalsIgnoreCase("item")) {
-                        isItem = false;
-                    }
-                    continue;
-                }
-
-                if (eventType == XmlPullParser.START_TAG) {
-                    if(name.equalsIgnoreCase("item")) {
-                        isItem = true;
-                        continue;
-                    }
-                }
-
                 String result = "";
                 if (xmlPullParser.next() == XmlPullParser.TEXT) {
                     result = xmlPullParser.getText();
@@ -111,20 +97,11 @@ public class RssManager {
                 }
 
                 if (title != null && link != null && description != null) {
-                    if(isItem) {
                         RssModel item = new RssModel(title, link, description);
                         items.add(item);
-                    }
-                    else {
-//                        mFeedTitle = title;
-//                        mFeedLink = link;
-//                        mFeedDescription = description;
-                    }
-
                     title = null;
                     link = null;
                     description = null;
-                    isItem = false;
                 }
             }
 

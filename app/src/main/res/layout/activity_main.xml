@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/cl_parent"
-    android:visibility="gone"
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
+    tools:context=".activity.MainActivity">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:id="@+id/cl_parent"
+    android:layout_height="match_parent">
     <EditText
         android:inputType="number"
         android:text="0"
@@ -51,24 +52,15 @@
 
 
     <LinearLayout
-
-        android:padding="@dimen/dp20"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/ll_toolbar"
         app:layout_constraintTop_toBottomOf="@id/edt_unit2"
         android:orientation="horizontal"
         android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
+        android:layout_height="wrap_content">
 
         <Button
-            android:textSize="40sp"
-            android:text="-"
-            android:id="@+id/btnminus"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
-
-        <Button
+            android:layout_margin="@dimen/dp20"
             android:textSize="40sp"
             android:text="."
             android:id="@+id/btndot"
@@ -77,6 +69,7 @@
             android:layout_height="wrap_content"/>
 
         <Button
+            android:layout_margin="@dimen/dp20"
             android:textSize="40sp"
             android:text="C"
             android:id="@+id/btndel"
@@ -85,6 +78,25 @@
             android:layout_height="wrap_content"/>
 
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/tv_congthuc"
+        android:textColor="@android:color/black"
+        android:textSize="15sp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_toolbar"
+        android:text="Cong thuc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:visibility="gone"
+        android:id="@+id/btn_tryagain"
+        android:layout_centerInParent="true"
+        android:text="Tải lại dữ liệu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+</RelativeLayout>

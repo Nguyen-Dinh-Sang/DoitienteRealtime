@@ -1,6 +1,5 @@
-package com.ptuddd.doitien;
+package com.ptuddd.doitien.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
@@ -16,13 +15,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ptuddd.doitien.activity.BaseActivity;
+import com.ptuddd.doitien.R;
 import com.ptuddd.doitien.model.CurrencyModel;
-import com.ptuddd.doitien.model.RssModel;
 import com.ptuddd.doitien.server.RssCurrencyManager;
-import com.ptuddd.doitien.server.RssManager;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -30,11 +28,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private ConstraintLayout parent;
     private Spinner unit1,unit2;
     private EditText edt1,edt2;
-    private Button btnminus,btndot,btndel;
-    String[] unit = {"C","F","K"};
-    ArrayAdapter aa;
-    int currentSelectUnit1=0;
-    int currentSelectUnit2=0;
+    private TextView tvcongthuc;
+    private Button btndot,btndel,btntry;
+    private ArrayAdapter aa;
+    private int currentSelectUnit1=0;
+    private int currentSelectUnit2=0;
     private List<CurrencyModel> currencyModels;
 
     @Override
@@ -43,44 +41,44 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        loadData();
+
+    }
+
+    private void loadData() {
         showDialogLoading("Vui lòng đợi ứng dụng lấy dữ liệu từ server",false);
         RssCurrencyManager.getInstance().getCurrencysFromRss("https://usd.fxexchangerate.com/rss.xml", new RssCurrencyManager.RssCurrencyManagerListener() {
             @Override
             public void onGetCurrencyFromRssSuccess(final List<CurrencyModel> currencys) {
                 currencyModels =currencys;
-                currencyModels.add(0,new CurrencyModel("USD",1.0));
+                currencyModels.add(0,new CurrencyModel("United States Dollar",1,"USD"));
                 cancleDialogLoading();
                 parent.setVisibility(View.VISIBLE);
                 aa = new ArrayAdapter(MainActivity.this,android.R.layout.simple_spinner_item, currencyModels);
                 aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 unit1.setAdapter(aa);
                 unit2.setAdapter(aa);
-
-
-                for (CurrencyModel c :
-                        currencyModels) {
-
-
-                }
             }
 
             @Override
             public void onGetCurrencyFromRssFail(String error) {
                 cancleDialogLoading();
-                Toast.makeText(MainActivity.this, "Đã xảy ra lỗi , vui lòng kiểm tra kết nối mạng", Toast.LENGTH_SHORT).show();
+                btntry.setVisibility(View.VISIBLE);
+                Toast.makeText(MainActivity.this, "Đã xảy ra lỗi , vui lòng kiểm tra kết nối mạng và thử lại", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "onGetCurrencyFromRssFail: " + error);
 
             }
         });
-
-
-
     }
+
     private void exchangeCurrencies(EditText editTextSetValues,EditText editTextGetValues,CurrencyModel selectedCurrencyGet,CurrencyModel selectedCurrencySet){
-        double currentRateGet =selectedCurrencyGet.getRate();
-        double currentRateSet = selectedCurrencySet.getRate();
-        double newValue=Double.parseDouble(editTextGetValues.getText().toString())/currentRateGet*currentRateSet;
-        editTextSetValues.setText(newValue+"");
+        if(selectedCurrencyGet!=null && selectedCurrencySet!=null) {
+            double currentRateGet = selectedCurrencyGet.getRate();
+            double currentRateSet = selectedCurrencySet.getRate();
+            BigDecimal newValue = new BigDecimal(Float.parseFloat(editTextGetValues.getText().toString()) / currentRateGet * currentRateSet, MathContext.DECIMAL64);
+            tvcongthuc.setText(editTextGetValues.getText().toString() + ""+selectedCurrencyGet.getName()+" = "+newValue+" "+selectedCurrencySet.getName());
+            editTextSetValues.setText(newValue + "");
+        }
 
     }
 
@@ -90,18 +88,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         edt1 = findViewById(R.id.edt_unit1);
         edt2= findViewById(R.id.edt_unit2);
         parent = findViewById(R.id.cl_parent);
-        btnminus= findViewById(R.id.btnminus);
-        btnminus.setOnClickListener(this);
         btndot= findViewById(R.id.btndot);
         btndot.setOnClickListener(this);
         btndel= findViewById(R.id.btndel);
         btndel.setOnClickListener(this);
+        btntry=findViewById(R.id.btn_tryagain);
+        btntry.setOnClickListener(this);
+        tvcongthuc = findViewById(R.id.tv_congthuc);
         unit1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 currentSelectUnit1=position;
                 if(edt1.hasFocus()){
-                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
+                    exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }else {
                     exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
                 }
@@ -119,7 +118,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 if(edt1.hasFocus()){
                     exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }else {
-                    exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
+                    exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
                 }
             }
 
@@ -140,7 +139,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(edt1.getText().toString().equals("")||edt1.getText().toString().equals("-")){
-                    edt1.setText("0");
+                    edt1.setText("0.0");
                 }else {
                     exchangeCurrencies(edt2,edt1,currencyModels.get(currentSelectUnit1),currencyModels.get(currentSelectUnit2));
                 }
@@ -160,7 +159,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(edt2.getText().toString().equals("")||edt2.getText().toString().equals("-")){
-                    edt2.setText("0");
+                    edt2.setText("0.0");
                 }else {
                     exchangeCurrencies(edt1,edt2,currencyModels.get(currentSelectUnit2),currencyModels.get(currentSelectUnit1));
 
@@ -237,16 +236,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.btnminus :{
-                addText("-");
-                break;
-            }
             case R.id.btndot :{
                 addText(".");
                 break;
             }
             case R.id.btndel :{
                 addText("del");
+                break;
+            }
+            case R.id.btn_tryagain:{
+                btntry.setVisibility(View.GONE);
+                loadData();
                 break;
             }
         }
